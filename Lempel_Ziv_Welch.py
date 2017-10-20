@@ -65,13 +65,6 @@ class lzw(RW.Reader_Writer):
             OutputFileName: The name of the compressed file
         """
         
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -----------------------------------------------------------------------
-        if self.FileFormat[FileFormat] == self.FileFormat["binary"]:
-            BITS_IN_CHUNK = CONST_CHUNK_SIZE * CONST_NUM_BITS_ASCII
-            DefaultByteArray = bytearray(BITS_IN_CHUNK)     
-        -----------------------------------------------------------------------
-        """
         self.LZWDictionary   = self.default_compression_LZWDictionary()
         self.pattern         = self.default_pattern()
         
@@ -87,18 +80,13 @@ class lzw(RW.Reader_Writer):
         while True:
             PeekBuffer = self.set_InputBuffer()
             
-            'End Condition: If we read in the empty string, we\'re done'
+            #End Condition: If we read in the empty string, we're done'
             if PeekBuffer == "":
                 Output = self.lzw_encode(InputBuffer, OutputBuffer,
                                          EOF = True)
                 self.ofs.write(Output)                                
                 break
-            """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-            -------------------------------------------------------------------
-            elif PeekBuffer == DefaultByteArray:
-                break     
-            -------------------------------------------------------------------
-            """
+
             Output = self.lzw_encode(InputBuffer, OutputBuffer)
             self.ofs.write(Output)
             InputBuffer = PeekBuffer
@@ -111,15 +99,11 @@ class lzw(RW.Reader_Writer):
         w keeps track of the necessary length of the key as it gets encoded.
         
         Arguments:
-            InputBuffer: 
-                A chunk of data read from the input file.
-            OutputBuffer:
-                A chunk of lzw encoded data.
-            EOF:
-                Signals if this is the last chunk of data.
+            InputBuffer:    A chunk of data read from the input file.
+            OutputBuffer:   A chunk of lzw encoded data.
+            EOF:            Signals if this is the last chunk of data.
         Return:
-            OutputBuffer:
-                An chunk of lzw encoded data.
+            OutputBuffer:   An chunk of lzw encoded data.
         """
         
         
@@ -136,9 +120,9 @@ class lzw(RW.Reader_Writer):
                 LastIndex = self.LZWDictionary[LastPattern]
 
                 OutputBuffer = self.append_encode_OutputBuffer(OutputBuffer,
-                                                        LastIndex, 
-                                                        element
-                                                        )
+                                                               LastIndex, 
+                                                               element
+                                                               )
                                                         
                 LenLZWDictionary = len(self.LZWDictionary)
                 self.w = self.calculate_w( LenLZWDictionary )
@@ -146,18 +130,6 @@ class lzw(RW.Reader_Writer):
                 #Reset the pattern                
                 self.pattern = self.default_pattern()
             
-            # If our current pattern is as much data as we can take in
-            elif len(self.pattern) >= CONST_CHUNK_SIZE:     
-                """                
-                Index = self.LZWDictionary[self.pattern]
-                OutputBuffer = self.append_encode_OutputBuffer(OutputBuffer,
-                                                        Index, 
-                                                        element
-                                                        )
-
-                #Reset the pattern
-                self.pattern = self.default_pattern()
-                """
         # Our last encoding, if there is a message to encode.
         if EOF and (self.pattern != self.default_pattern()):
             Index = self.LZWDictionary[self.pattern]
@@ -203,18 +175,12 @@ class lzw(RW.Reader_Writer):
         while True:
             PeekBuffer = self.set_InputBuffer()
             
-            'End Condition: If we read in the empty string, we\'re done'
+            #End Condition: If we read in the empty string, we're done
             if PeekBuffer == "":
                 Output = self.lzw_decode(InputBuffer, OutputBuffer,
                                          EOF = True)
                 self.ofs.write(Output)                                
                 break
-            """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-            -------------------------------------------------------------------
-            elif PeekBuffer == DefaultByteArray:
-                break     
-            -------------------------------------------------------------------
-            """
             
             Output = self.lzw_decode(InputBuffer, OutputBuffer)
             self.ofs.write(Output)
@@ -223,10 +189,6 @@ class lzw(RW.Reader_Writer):
         
     def lzw_decode(self, InputBuffer, OutputBuffer, 
                    EOF = False ):
-        #These arguments should probably largely belong to SELF
-                   #Fix that up tomorrow
-                  #Should pass in an EOF argument when EOF before breaking
-                   #and then use that to get the very last part of the encoding
         """ The MEAT of the Lempel-Ziv-Welch decompression schema.
         
         LZWDictionary uses binary indices as keys and their interpreted
@@ -284,28 +246,10 @@ class lzw(RW.Reader_Writer):
                 self.next_file_obj  = ""
                 self.incr_mem_ele   = 0
                 
+                # Because we are in a for loop, we are still reading data
                 if not (len(self.pattern) == 0 and element == '0'):  
                     self.add_element_to_pattern( element )
                 self.incr_mem_ele += 1
-            
-            # If our current pattern is as much data as we can take in
-            if len(self.pattern) >= CONST_CHUNK_SIZE:        
-                """
-                Index = self.LZWDictionary[self.pattern]
-                OutputBuffer = self.append_encode_OutputBuffer(OutputBuffer,
-                                                        Index, 
-                                                        element,
-                                                        True)
-
-                #Reset iteration values               
-                self.pattern        = self.default_pattern()
-                self.next_file_obj  = ""
-                self.incr_mem_ele   = 0
-                
-                if not (len(self.pattern) == 0 and element == '0'):  
-                    self.add_element_to_pattern( element )
-                self.incr_mem_ele += 1
-                """
         
         # Our last encoding, if there is a message to encode.
         if EOF and (self.pattern != self.default_pattern()):
@@ -328,7 +272,7 @@ class lzw(RW.Reader_Writer):
         """
         POWER_OF_TWO = 1
         w = 1
-        while( POWER_OF_TWO * 2 < LEN_LZWDICTIONARY ):
+        while(  POWER_OF_TWO * 2 < LEN_LZWDICTIONARY ):
             POWER_OF_TWO *= 2
             w += 1
         
@@ -345,15 +289,7 @@ class lzw(RW.Reader_Writer):
             RF = 'r'
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             RF = 'r'
-        else:
-            RF = 'r'
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -----------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:              
-            RF = 'rb'
-        -----------------------------------------------------------------------
-        """
-        
+
         return RF
         
     def set_InputBuffer(self):
@@ -367,15 +303,6 @@ class lzw(RW.Reader_Writer):
             InputBuffer = self.ifs.read(CONST_CHUNK_SIZE)
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             InputBuffer = self.ifs.read(CONST_CHUNK_SIZE)
-        else:
-            InputBuffer = self.ifs.read(CONST_CHUNK_SIZE)
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:              
-            InputBuffer = DefaultByteArray.copy()
-            self.ifs.readinto(InputBuffer)
-        -------------------------------------------------------------------
-        """
         
         return InputBuffer
     
@@ -393,14 +320,6 @@ class lzw(RW.Reader_Writer):
                 LZWDictionary[chr(ASCII_ORDINAL)] = LZWIndex     
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             LZWDictionary[""] = '0'        
-        else:
-            LZWDictionary[""] = '0'          
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:              
-            LZWDictionary[""] = '0'
-        -------------------------------------------------------------------
-        """
         
         return LZWDictionary
         
@@ -418,14 +337,6 @@ class lzw(RW.Reader_Writer):
                 LZWDictionary[LZWIndex] = chr(ASCII_ORDINAL)     
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             LZWDictionary['0'] = ""        
-        else:
-            LZWDictionary['0'] = ""          
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:              
-            LZWDictionary['0'] = ""
-        -------------------------------------------------------------------
-        """
         
         return LZWDictionary    
         
@@ -439,14 +350,6 @@ class lzw(RW.Reader_Writer):
             pattern = ""
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             pattern = ""
-        else:
-            pattern = ""
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:              
-            pattern = bytearray(0)
-        -------------------------------------------------------------------
-        """
         
         return pattern
         
@@ -460,15 +363,7 @@ class lzw(RW.Reader_Writer):
             self.pattern = ''.join([self.pattern, element])
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             self.pattern = ''.join([self.pattern, element])
-        else:
-            self.pattern = ''.join([self.pattern, element])
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:     
-            self.pattern = pattern.append(element)
-        -------------------------------------------------------------------
-        """
-    
+
         
     def append_encode_OutputBuffer(self, OutputBuffer, Index, element, 
                                    NoPad = False):
@@ -504,17 +399,7 @@ class lzw(RW.Reader_Writer):
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             PADDED_INDEX = Index.zfill(w)
             OutputBuffer = ''.join([OutputBuffer, PADDED_INDEX, element])
-            
-        else:
-            PADDED_INDEX = Index.zfill(w)
-            OutputBuffer = ''.join([OutputBuffer, PADDED_INDEX, element])
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:
-            element = CONVERT BYTE ARRAY TO STRBIN
-            OutputBuffer = ''.join([OutputBuffer, Index, element])
-        -------------------------------------------------------------------
-        """
+
         return OutputBuffer
         
     def append_decode_OutputBuffer(self, OutputBuffer, Index):
@@ -536,15 +421,7 @@ class lzw(RW.Reader_Writer):
                                     
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             OutputBuffer = ''.join([OutputBuffer, Index, element])    
-        else:
-            OutputBuffer = ''.join([OutputBuffer, Index, element])
-        """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
-        -------------------------------------------------------------------
-        elif self.FileFormat[self.file_format] == self.FileFormat["binary"]:
-            element = CONVERT BYTE ARRAY TO STRBIN
-            OutputBuffer = ''.join([OutputBuffer, Index, element])
-        -------------------------------------------------------------------
-        """
+            
         return OutputBuffer
         
         
@@ -556,8 +433,6 @@ class lzw(RW.Reader_Writer):
         if self.FileFormat[self.file_format] == self.FileFormat["ASCII"]:
             return CONST_NUM_BITS_ASCII - 1 
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
-            return 1
-        else:
             return 1
             
     def convert_next_file_obj(self):
@@ -574,8 +449,7 @@ class lzw(RW.Reader_Writer):
                 self.next_file_obj = self.LZWDictionary[self.next_file_obj]
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
             pass
-        else:
-            pass
+
         
 
         
