@@ -137,31 +137,7 @@ class ASCII_Binary(RW.Reader_Writer):
             OutputString = InputBuffer.decode()
             self.ofs.write(OutputString)
             
-        self.close_files()        
-        
-        
-    def bytes_to_strbin(self,
-                   InputFileName  = "DEFAULT.txt",
-                   OutputFileName = "DEFAULT.txt"
-                   ):
-        """ Converts a binary file to an strbin file """
-        DefaultByteArray = bytearray(CONST_CHUNK_SIZE)        
-        
-        self.open_files(InputFileName, OutputFileName,
-                        ReadFormat = 'rb')
-        
-        while True:
-            InputBuffer = DefaultByteArray.copy()
-            self.ifs.readinto(InputBuffer)
-            
-            'End Condition: If we see our default array, we\re done'
-            if InputBuffer == DefaultByteArray:
-                break     
-            
-            OutputString = ''.join(['{:b}'.format(i).zfill(8) for i in InputBuffer])
-            self.ofs.write(OutputString)
-            
-        self.close_files()    
+        self.close_files()            
     
     def strbin_to_bytes(self,
                         InputFileName   = "DEFAULT.txt",
