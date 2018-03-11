@@ -22,7 +22,18 @@ class Reader_Writer():
         """ Default Constructor """
         pass
     
-    def set_ifs(self, InputFileName = "DEFAULT.txt", ReadFormat = 'r'):
+    def __del__(self):
+        """ Destructor """
+        try:
+            self.ifs.close()
+        except AttributeError:
+            pass
+        try:
+            self.ofs.close()
+        except AttributeError:
+            pass
+        
+    def set_ifs(self, InputFileName = "DEFAULT.txt", ReadFormat = 'r', NewLine = ''):
         """ A useful function to set the input file stream.
         
         Arguments:
@@ -35,7 +46,7 @@ class Reader_Writer():
             InputFileName = str(InputFileName)
             self.ifs = open(InputFileName, ReadFormat)  
 
-    def set_ofs(self, OutputFileName = "DEFAULT.txt", WriteFormat = 'w'):
+    def set_ofs(self, OutputFileName = "DEFAULT.txt", WriteFormat = 'w', NewLine = ''):
         """ A useful function to set the output file stream.
         
         Arguments:
@@ -51,8 +62,9 @@ class Reader_Writer():
     def open_files(self, 
                    InputFileName    = "DEFAULT.txt", 
                    OutputFileName   = "DEFAULT.txt",
-                   ReadFormat       = 'r', 
-                   WriteFormat      = 'w'
+                   ReadFormat       = 'rU', 
+                   WriteFormat      = 'w',
+                   NewLine = ''
                    ):
         """ Opens Input and Output files 
         
@@ -60,11 +72,11 @@ class Reader_Writer():
             ReadFormat:     The python-interpreted argument for reading files
             WriteFormat:    The python-interpreted argument for writing files
         """   
-        self.set_ifs(InputFileName, ReadFormat)
-        self.set_ofs(OutputFileName, WriteFormat)        
-        
+        self.set_ifs(InputFileName, ReadFormat, NewLine)
+        self.set_ofs(OutputFileName, WriteFormat, NewLine)        
         
     def close_files(self):
         """ Closes Input and Output files """
         self.ifs.close()
         self.ofs.close()
+        

@@ -9,8 +9,8 @@ import Reader_Writer as RW
 
 from enum import Enum
 
-CONST_CHUNK_SIZE = 1024
 CONST_NUM_BITS_ASCII = 8
+BITS_PER_BYTE = 8
 
 class lzw(RW.Reader_Writer):
     """ Lempel-Ziv-Welch compression & decompression. 
@@ -34,13 +34,14 @@ class lzw(RW.Reader_Writer):
                         decode pattern. Used for decoding.
         w:              Minimum number of bits required to represent 
                         largest LZW index.
+        CHUNK_SIZE:     The size of "chunks" of data being read at a time.
     """
 
     class FileFormat(Enum):
         ASCII   = 1
         strbin  = 2
     
-    def __init__(self, FileFormat = "ASCII"):
+    def __init__(self, FileFormat = "ASCII", CHUNK_SIZE = 1024):
         """ Default constructor, sets self.file_format """
         self.file_format        = FileFormat
         self.LZWDictionary      = dict()
@@ -53,6 +54,8 @@ class lzw(RW.Reader_Writer):
         self.next_file_obj      = ""
         
         self.num_bits_file_obj  = self.get_num_bits_file_obj()
+        
+        self.CHUNK_SIZE = CHUNK_SIZE
 
     def compress(self,
                  InputFileName    = "DEFAULT.txt",
@@ -89,7 +92,9 @@ class lzw(RW.Reader_Writer):
 
             Output = self.lzw_encode(InputBuffer, OutputBuffer)
             self.ofs.write(Output)
-            InputBuffer = PeekBuffer
+            
+            InputBuffer = PeekBuffer[:]
+            
         self.close_files()           
         
     def lzw_encode(self, InputBuffer, OutputBuffer, EOF = False ):
@@ -116,7 +121,7 @@ class lzw(RW.Reader_Writer):
                 LenLZWDictionary = len(self.LZWDictionary)
                 LZWIndex = '{:b}'.format(LenLZWDictionary)
                 self.LZWDictionary[self.pattern] = LZWIndex   
-                
+
                 LastIndex = self.LZWDictionary[LastPattern]
 
                 OutputBuffer = self.append_encode_OutputBuffer(OutputBuffer,
@@ -153,7 +158,7 @@ class lzw(RW.Reader_Writer):
         """ CURRENTLY UNUSED, HERE FOR FUTURE EXPANSION
         -----------------------------------------------------------------------
         if self.FileFormat[FileFormat] == self.FileFormat["binary"]:
-            BITS_IN_CHUNK = CONST_CHUNK_SIZE * CONST_NUM_BITS_ASCII
+            BITS_IN_CHUNK = self.CHUNK_SIZE * CONST_NUM_BITS_ASCII
             DefaultByteArray = bytearray(BITS_IN_CHUNK)     
         -----------------------------------------------------------------------
         """
@@ -184,7 +189,9 @@ class lzw(RW.Reader_Writer):
             
             Output = self.lzw_decode(InputBuffer, OutputBuffer)
             self.ofs.write(Output)
-            InputBuffer = PeekBuffer
+            
+            InputBuffer = PeekBuffer[:]
+            
         self.close_files()           
         
     def lzw_decode(self, InputBuffer, OutputBuffer, 
@@ -297,12 +304,13 @@ class lzw(RW.Reader_Writer):
         
         Return:
             InputBuffer: A buffered chunk of data pulled from the input file.
+        
         """
         
         if self.FileFormat[self.file_format] == self.FileFormat["ASCII"]:
-            InputBuffer = self.ifs.read(CONST_CHUNK_SIZE)
+            InputBuffer = self.ifs.read(self.CHUNK_SIZE)
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
-            InputBuffer = self.ifs.read(CONST_CHUNK_SIZE)
+            InputBuffer = self.ifs.read(self.CHUNK_SIZE * BITS_PER_BYTE)
         
         return InputBuffer
     
@@ -315,7 +323,7 @@ class lzw(RW.Reader_Writer):
         
         LZWDictionary = dict()
         if self.FileFormat[self.file_format] == self.FileFormat["ASCII"]:
-            for ASCII_ORDINAL in range(0,128):
+            for ASCII_ORDINAL in range(0,129):
                 LZWIndex = '{:b}'.format(ASCII_ORDINAL)
                 LZWDictionary[chr(ASCII_ORDINAL)] = LZWIndex     
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
@@ -332,7 +340,7 @@ class lzw(RW.Reader_Writer):
         
         LZWDictionary = dict()
         if self.FileFormat[self.file_format] == self.FileFormat["ASCII"]:
-            for ASCII_ORDINAL in range(0,128):
+            for ASCII_ORDINAL in range(0,129):
                 LZWIndex = '{:b}'.format(ASCII_ORDINAL)
                 LZWDictionary[LZWIndex] = chr(ASCII_ORDINAL)     
         elif self.FileFormat[self.file_format] == self.FileFormat["strbin"]:
@@ -438,8 +446,8 @@ class lzw(RW.Reader_Writer):
     def convert_next_file_obj(self):
         """ Convert the binary file object to the character it represents.
         
-        Main function:  With strbin, 7 binary characters will be read and
-                        converted to a character.
+        Main function:  With ASCII, several binary values are converted
+                        to a good index for the dictionary
         """
         if self.FileFormat[self.file_format] == self.FileFormat["ASCII"]:
             if self.next_file_obj != '':
